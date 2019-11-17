@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1573998242053.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "C4D35BCD",
+    "lastKnownWriteTime" : 1574020847,
+    "last_content_update" : 1574020847860,
+    "path" : "~/Documents/Portfolio/SpanishDict/Conjugacion/conjugacion.r",
+    "project_path" : "conjugacion.r",
+    "properties" : {
+        "cursorPosition" : "164,4",
+        "scrollLine" : "150",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
