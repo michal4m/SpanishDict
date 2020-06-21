@@ -2,6 +2,9 @@
 library(tidyverse)
 library(rvest)
 
+# Moods and tenses frequency
+# https://www.reddit.com/r/Spanish/comments/a5pnjo/frequency_of_spanish_verb_tenses_and_moods/
+
 #### List of most important spanish verbs ####
 
 wl <- list()
@@ -38,7 +41,8 @@ wl_endings <- wl_full %>%
                                        nchar(most_popular_verbs)-1,
                                        nchar(most_popular_verbs))) %>%
                 group_by(ending) %>% 
-                count() 
+                count() %>% 
+                ungroup()
 
 # wl_full %>%
 #   mutate(ending = substr(most_popular_verbs,
@@ -182,9 +186,25 @@ verb_forms <- as_tibble(verb_forms)
 
 # END of data preparation (scraping)
 
-# Custom functions
+# START of Custom functions
+
+# Rearranging for correct binding
+moods <- table$mood
+pronouns <- table$pronoun
+tenses <- table$tense
+
+table <- table %>% 
+  arrange(match(tense,tenses)) %>%
+  arrange(match(pronoun,pronouns)) %>%
+  arrange(match(mood,moods))
 
 table_new <- bind_cols(table,verb_forms)
+
+# Rearranging for learning
+table_new <- table_new %>%
+  arrange(match(pronoun,pronouns)) %>%
+  arrange(match(tense,tenses)) %>%
+  arrange(match(mood,moods))
 
 table_new %>% 
   pivot_longer(cols = 7:ncol(table_new),
@@ -192,6 +212,97 @@ table_new %>%
                values_to = "verb_form") -> atest
 
 atest
+
+
+
+atest %>% 
+  mutate( root = substr(indefinido,1,nchar(indefinido)-2),
+          ending = substr(indefinido, nchar(indefinido)-2+1, nchar(indefinido)),
+          new_ending = case_when(ending == 'ar' ~ as.character(conj_ar),
+                                 ending == 'er' ~ as.character(conj_er),
+                                 ending == 'ir' ~ as.character(conj_ir),
+                                 TRUE ~ as.character(conj_ir))) %>%
+  # The rule below only works for indicativo
+  mutate( regular_form = case_when(
+                                   # Rules for mood: Indicative
+                                   tense %in% c('Present','Preterite','Imperfect') &
+                                    mood %in% c('Indicative') ~ paste0(root,new_ending),
+                                   tense %in% c('Conditional','Future','Imperfect') &
+                                     mood %in% c('Indicative') ~ paste0(indefinido,new_ending),
+                                   # Rules for mood: Subjunctive
+                                   tense %in% c('Present') &
+                                     mood %in% c('Subjunctive') ~ paste0(root,new_ending),
+                                   tense %in% c('Imperfect') &
+                                     mood %in% c('Subjunctive') ~ paste0(root,substr(ending,1,1),new_ending),
+                                   
+                                   # Rules for mood: Imperative
+                                   
+                                   # Rules for mood: Progressive
+                                   
+                                   # Rules for mood: Perfect
+                                   
+                                   # Rules for mood: Perfect Subjunctive
+                              
+                                   TRUE ~ paste0(root,new_ending)),
+          if_regular = ifelse(verb_form == regular_form, 1, 0)) -> regularity_table
+  
+regularity_table %>% 
+  filter(tense %in% c('Present','Preterite','Imperfect')) %>%
+  filter(mood == 'Indicative') %>% 
+  group_by(indefinido) %>% 
+  summarise(n_regular = sum(if_regular),
+            n_total = n()) %>% 
+  ungroup() %>% 
+  mutate(regularity_index = n_regular/n_total) %>% 
+  arrange(desc(regularity_index)) -> regularity_summary
+
+
+# Visualization - verbs regularity by letter
+
+
+regularity_summary %>% 
+  mutate(first_letter = substr(indefinido,1,1)) %>% 
+  # group_by(first_letter) %>% count() %>% view
+  ggplot( aes(x=first_letter, y=regularity_index)) +
+  geom_violin() +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  # scale_fill_viridis(discrete = TRUE, alpha=0.6, option="A") +
+  # theme_ipsum() +
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=11)
+  ) +
+  ggtitle("Violin chart") +
+  xlab("")
+
+
+regularity_table %>% 
+  # filter(tense %in% c('Present','Preterite','Imperfect')) %>%
+  filter(mood == 'Subjunctive') %>%
+  # filter(mood == 'Indicative') %>%
+  mutate(first_letter = substr(indefinido,1,1)) %>%
+  group_by(tense,indefinido) %>% 
+  summarise(n_regular = sum(if_regular),
+            n_total = n()) %>% 
+  ungroup() %>% 
+  mutate(regularity_index = n_regular/n_total) %>% 
+  arrange(desc(regularity_index)) %>% 
+  # group_by(first_letter) %>% count() %>% view
+  ggplot( aes(x=tense, y=regularity_index)) +
+  geom_violin() +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  # scale_fill_viridis(discrete = TRUE, alpha=0.6, option="A") +
+  # theme_ipsum() +
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=11)
+  ) +
+  ggtitle("Violin chart") +
+  xlab("")
+
+
+  
+  
   
 # to do: WRITE CONJUNGATION FUNCTION (according to basic grammar rules) 
 # inputs: verb_indefinido, pronoun, tense, mood
