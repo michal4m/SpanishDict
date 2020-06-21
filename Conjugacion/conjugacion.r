@@ -57,7 +57,8 @@ first_page <- read_html(url_1)
 
 pronouns <- first_page %>% 
               # The '.' indicates the class
-              html_nodes('td.vtable-pronoun') %>% 
+              # html_nodes('td.vtable-pronoun') %>% # old class name
+              html_nodes('td._2UqTZCc2') %>% # new class name
               # Extract the raw text as a list
               html_text() %>%
               as_tibble() %>% 
@@ -67,7 +68,8 @@ pronouns <- first_page %>%
 
 tenses <- first_page %>% 
             # The '.' indicates the class
-            html_nodes('td.vtable-title') %>% 
+            #html_nodes('td.vtable-title') %>% # old class name
+            html_nodes('td._32tEU4Z5') %>%  # new class name
             # Extract the raw text as a list
             html_text() %>% 
             as_tibble() %>% 
@@ -161,7 +163,8 @@ first_page_3 <- read_html(url_3)
 
 conj_list[[i]] <- first_page_3 %>% 
                 # The '.' indicates the class
-                html_nodes('td.vtable-word') %>% 
+                # html_nodes('td.vtable-word') %>% # old class name
+                html_nodes('td._20Fm6xF3') %>% # new class name
                 # Extract the raw text as a list
                 html_text() %>%
                 as_tibble() %>% 
@@ -177,6 +180,9 @@ verb_forms <- as_tibble(verb_forms)
 
 #### Scraping conjugation ####
 
+# END of data preparation (scraping)
+
+# Custom functions
 
 table_new <- bind_cols(table,verb_forms)
 
